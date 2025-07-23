@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "legal-ocr-project",
+  "private_key_id": "4d6c6c743759d4a3da162ffd387e52dd208080fa",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCLjrA3Rox6AMcB\nXcBNzqO6By4GEYNmdOD5yb71DvH/G+gZUp//agquW1HDHj7FB6HFxLaswUl2OQJ0\n37F+QQKDb/yY2M+iD9k+yJud5fo2IgeBD63CrYk18cHCnRyeRVR/emWtipLy4Ih6\n1vd0jga+i/5KT+fe3IbaOxCZGr90LM7qnlGPOhh6uvameMDRVJldB1TU3e6D9VkX\n2mom480RPtCWTJusgEj1DnH/7juJa25SIQi+1DZQqNlcqcFKQvS7sSH+FpAGceie\njZTj4bo8noT9Mx3b1lgEUeaSMbWFAx1j4bFDZ9qZ7anO26XBZwAl1svLjj3UN3ae\n+cfuEx5TAgMBAAECggEAK9SRpZqjrgGmfthZ+FXo+BkfLEq90STuL6VcMw0RlgTG\nvYVEuOwuFJqbsENEhY8jEMD6eoFuOBIpollLHpL+XheC5uJZO9XsbhqFPW8oSW4g\nmzk4YocsK+QU7bF4doDhy/O+EWYPRvacBrCTIWkl1xySrfYwpb7vH4UjbmKHNM4T\nD9HIzJ7zM7Tw6zhqId3oV5RnA35/5lMtJrCr24sYbIsouoIfBThZo2qO6X7EtIV3\nCiplbd+qrlQEXfZuG24h64Kh2Rapvmwu0D73SPo0n4lxj6QRg3y3rH5iMLR9YYtt\n3pVqAxWPjN7XnrcxsqrjaENHMoIDbNXt42Xtl9kgCQKBgQDEtG5+ATQikOLD/WEg\nTu45/sz7izf0pkbC9aRPuChHtH1k/hGPLKS+8EJ4IYAcQWnPD6ZGrDUvI4AnnW0/\n0/lNzVtyUBVmiMSTQM6Ni4Y322FZjiP2bMNR2aS0dzarG/e5FjL8sRea24/kg3XY\nv8CwiyBpiHWqbdpKkgqJ0sOWZwKBgQC1oDr8zgRe7VZxUYDuM96NkS/0xP8fbeF8\nrQP2CbQlXLYDAyUT5T44OHWhllJiWlMXxU26JY/vPAAm66P8Ao3kWf+zo2bHMltX\nxhMDHft/Rg/yJVjYEEkf/yUPMT9lU+DZwAdggCj9D6Pf3c0Z4k/7UFpUHGaFqIoJ\nkeF2RuhNNQKBgBVfiZX1aYXL+mfTU0dgbDAvCHTYlrbljlDGwhjLaM0Jxoo/tQa6\nkhgRIRfOhA4N6YJPMAED2y+JCvbC+0jxLmiOxL3yB7FBcSKS6x6kJ2xQUQ6bDDtN\nbBerr2LQhUcoXc1lpRqh32+7JbJtulNX2ocURuxQoIBpOUva/HwnQ4tHAoGAOq44\nILGXK+xWf2or08oiX27HJbf4DXl83sEvhHCCKYgYrkR32EO6pINpTfm5SFmSex2e\nDURRiqPCENEVPDi/C0YgnTNv42/bnzI5tkoblXVXdY6nc7dfSN0wZgYtS1mcTf4C\n5CTEGW7SLWQF/hTmbnX5mS9L2Gcpognl5EboivkCgYEAikBh9BP1tVUy9/vG+ua9\n/uA8SOHj7Y3N8qezl8w8IOO2BuVHXQBX/7PSStsdF5bO/4BWaTzY9tSaoq+cjX4q\nh7C0Ie9OAqy11YqE1zYkU3EZd/prJQ576zBvD6yNRPXllT4pKjmsh7OpjFj1+ure\n5CF5EJTL6d3Z9Pci6SJpuRU=\n-----END PRIVATE KEY-----\n",
+  "client_email": "scanner@legal-ocr-project.iam.gserviceaccount.com",
+  "client_id": "101007358854297222878",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/scanner%40legal-ocr-project.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
