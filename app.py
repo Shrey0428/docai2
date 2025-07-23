@@ -64,7 +64,7 @@ if uploaded_pdf:
         extracted_text = extract_text_from_pdf(uploaded_pdf)
 
     if not extracted_text:
-        st.error("❌ Failed to extract text: No text detected. Try a clearer PDF.")
+        st.error("❌ Failed to extract text: No text detected. .")
         st.stop()
 
     st.success("✅ OCR complete!")
