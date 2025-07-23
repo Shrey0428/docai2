@@ -1,13 +1,11 @@
 import streamlit as st
-from google.cloud import vision
-from google.oauth2 import service_account
 import tempfile
 import subprocess
+from google.oauth2 import service_account
+from google.cloud import vision_v1 as vision
+from google.cloud.vision_v1 import types
 
-# === Configure Google Vision credentials ===
-CREDENTIALS_PATH = "service_account.json"
-
-# === Ask LLaMA using Ollama (local) ===
+# === Ask LLaMA (via Ollama) ===
 def ask_llama(prompt, model="llama3"):
     try:
         result = subprocess.run(
@@ -19,28 +17,27 @@ def ask_llama(prompt, model="llama3"):
         )
         return result.stdout.decode("utf-8")
     except Exception as e:
-        return f"❌ Error running LLaMA: {e}"
+        return f"❌ Error calling LLaMA: {e}"
 
-# === Use Google Cloud Vision API to extract text from PDF ===
+# === Extract text from PDF using Google Vision ===
 def extract_text_from_pdf(pdf_file):
-    # Save uploaded file temporarily
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
-        temp_file.write(pdf_file.read())
-        temp_path = temp_file.name
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
+        temp.write(pdf_file.read())
+        temp_path = temp.name
 
-    # Setup Vision client
-    creds = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
+    # Load GCP credentials from Streamlit secrets
+    creds_dict = st.secrets["GCP_CREDENTIALS"]
+    creds = service_account.Credentials.from_service_account_info(creds_dict)
+
     client = vision.ImageAnnotatorClient(credentials=creds)
 
-    # Read PDF into bytes
+    # Read the file content
     with open(temp_path, 'rb') as f:
         pdf_content = f.read()
 
-    # Vision request
-    mime_type = 'application/pdf'
-    input_config = vision.types.InputConfig(content=pdf_content, mime_type=mime_type)
-    features = [{"type_": vision.Feature.Type.DOCUMENT_TEXT_DETECTION}]
-    request = vision.AnnotateFileRequest(input_config=input_config, features=features)
+    input_config = types.InputConfig(content=pdf_content, mime_type='application/pdf')
+    feature = types.Feature(type_=types.Feature.Type.DOCUMENT_TEXT_DETECTION)
+    request = types.AnnotateFileRequest(input_config=input_config, features=[feature])
 
     response = client.batch_annotate_files(requests=[request])
     all_text = ""
@@ -50,10 +47,10 @@ def extract_text_from_pdf(pdf_file):
     return all_text
 
 # === Streamlit UI ===
-st.set_page_config(page_title="DOCAI", layout="wide")
-st.title("📄 DOC AI: Extract Legal Info from Scanned PDF")
+st.set_page_config(page_title="DOC AI - PDF Extractor", layout="wide")
+st.title("📄 DOC AI — Extract Structured Legal Info from Scanned PDFs")
 
-uploaded_pdf = st.file_uploader("Upload Scanned Legal PDF", type=["pdf"])
+uploaded_pdf = st.file_uploader("📤 Upload a scanned legal PDF", type=["pdf"])
 
 if uploaded_pdf:
     with st.spinner("🔍 Extracting text from PDF using Google Vision..."):
@@ -63,26 +60,25 @@ if uploaded_pdf:
             st.error(f"❌ Failed to extract text: {e}")
             st.stop()
 
-    st.success("✅ Text extracted successfully!")
-    st.subheader("📃 OCR Text")
-    st.text_area("Raw OCR Output", extracted_text, height=300)
+    st.success("✅ Text extracted from PDF!")
+    st.subheader("📃 Raw OCR Text")
+    st.text_area("OCR Output", extracted_text, height=300)
 
-    # Ask LLaMA to extract structure
-    if st.button("🔍 Extract Structured Fields using LLaMA"):
+    if st.button("🔍 Extract Structured Legal Info using LLaMA"):
         prompt = f"""
-You are a legal assistant AI. Based on the OCR text below, extract the following:
+You are a legal assistant AI. Based on the OCR text below, extract the following structured fields:
 
 - Document Type (e.g., Sale Deed, Lease, Agreement)
-- Date of Document
-- Parties Involved (Buyer, Seller, Authority)
+- Document Date
+- Buyer and Seller Names
 - Property Address, Plot Number, Area
-- Witness Names or Signatories
-- Any Registration Number or Stamp ID
+- Witnesses or Signatories
+- Registration Number or Stamp ID (if any)
 
 OCR TEXT:
 {extracted_text}
 """
-        with st.spinner("🦙 Talking to LLaMA..."):
+        with st.spinner("🦙 Asking LLaMA..."):
             structured = ask_llama(prompt)
-            st.subheader("🧾 Structured Data")
-            st.text_area("LLaMA Output", structured, height=400)
+            st.subheader("🧾 LLaMA Structured Output")
+            st.text_area("Structured Info", structured, height=400)
