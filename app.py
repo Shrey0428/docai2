@@ -2,9 +2,9 @@ import streamlit as st
 import os
 from google.oauth2 import service_account
 from google.cloud import vision_v1 as vision
-from google.cloud.vision_v1 import types
 from pdf2image import convert_from_bytes
 import tempfile
+from PIL import Image
 
 st.set_page_config(page_title="DocAI OCR", page_icon="📄")
 st.title("📄 Document OCR & Analysis")
@@ -22,7 +22,8 @@ def extract_text_from_pdf(pdf_bytes):
         images = convert_from_bytes(pdf_bytes)
         all_text = ""
 
-        for img in images:
+        for idx, img in enumerate(images):
+            st.image(img, caption=f"📄 Page {idx + 1}", use_column_width=True)
             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
                 img.save(tmp.name, format='PNG')
                 with open(tmp.name, 'rb') as f:
@@ -34,12 +35,18 @@ def extract_text_from_pdf(pdf_bytes):
                         return ""
 
                     annotation = response.full_text_annotation.text
-                    if annotation:
+                    if not annotation.strip():
+                        st.warning(f"⚠️ No text detected on Page {idx + 1}. Try a clearer scan.")
+                    else:
                         all_text += annotation + "\n"
 
                 os.remove(tmp.name)
 
-        return all_text if all_text.strip() else None
+        if not all_text.strip():
+            st.error("❌ No text detected on any page. Try a clearer PDF.")
+            return None
+
+        return all_text
 
     except Exception as e:
         st.error(f"❌ Failed to extract text: {e}")
