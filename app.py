@@ -2,19 +2,19 @@ import streamlit as st
 import fitz  # PyMuPDF
 from PIL import Image
 import easyocr
-import numpy as np  # ✅ Add this line
+import numpy as np
 import io
 
 st.set_page_config(page_title="DocAI Cloud OCR", page_icon="📄")
 st.title("📄 DocAI - Cloud-Based PDF OCR")
 
-# Initialize EasyOCR reader (English only for speed)
+# Initialize EasyOCR reader (English)
 reader = easyocr.Reader(['en'], gpu=False)
 
-# File uploader
-uploaded_file = st.file_uploader("Upload a scanned legal PDF", type="pdf")
+# Upload PDF
+uploaded_file = st.file_uploader("📤 Upload a scanned legal PDF", type="pdf")
 
-# Convert PDF to images using PyMuPDF (fitz)
+# Convert PDF pages to images
 def pdf_to_images(pdf_bytes):
     images = []
     try:
@@ -28,12 +28,12 @@ def pdf_to_images(pdf_bytes):
         st.error(f"❌ PDF to image conversion failed: {e}")
     return images
 
-# Extract text from each image
+# Extract text using EasyOCR
 def extract_text_from_images(images):
     all_text = ""
     for i, img in enumerate(images):
         st.image(img, caption=f"📄 Page {i+1}", use_column_width=True)
-        with st.spinner(f"🔍 OCR on Page {i+1}..."):
+        with st.spinner(f"🔍 Running OCR on Page {i+1}..."):
             result = reader.readtext(np.array(img), detail=0)
             page_text = "\n".join(result)
             if not page_text.strip():
@@ -41,7 +41,7 @@ def extract_text_from_images(images):
             all_text += page_text + "\n"
     return all_text.strip()
 
-# Dummy extractor (can replace with LLaMA or other AI later)
+# Dummy structured extractor
 def structured_extraction(text):
     if not text:
         return {}
@@ -59,13 +59,13 @@ if uploaded_file:
         images = pdf_to_images(pdf_bytes)
 
     if images:
-        st.success("✅ PDF converted to images.")
+        st.success("✅ PDF successfully converted to images.")
         with st.spinner("🧠 Performing OCR..."):
             text = extract_text_from_images(images)
 
         if text:
             st.subheader("📜 Extracted OCR Text")
-            st.text_area("OCR Output", text, height=300)
+            st.text_area("Full OCR Output", text, height=300)
 
             st.subheader("📋 Structured Data (Demo)")
             data = structured_extraction(text)
@@ -73,6 +73,6 @@ if uploaded_file:
         else:
             st.error("❌ OCR failed or no text found.")
     else:
-        st.error("❌ Could not process PDF.")
+        st.error("❌ Could not convert PDF to images.")
 else:
-    st.info("📤 Upload a scanned PDF to start OCR.")
+    st.info("📥 Please upload a scanned PDF to begin OCR.")
