@@ -1,2 +1,5 @@
 streamlit
 google-cloud-vision
+google-auth
+pdf2image
+Pillow
