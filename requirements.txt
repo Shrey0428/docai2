@@ -1,5 +1,5 @@
 streamlit
-easyocr
+pytesseract
 PyMuPDF
 Pillow
 numpy
