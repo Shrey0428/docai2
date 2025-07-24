@@ -2,6 +2,7 @@ import streamlit as st
 import fitz  # PyMuPDF
 from PIL import Image
 import easyocr
+import numpy as np  # ✅ Add this line
 import io
 
 st.set_page_config(page_title="DocAI Cloud OCR", page_icon="📄")
