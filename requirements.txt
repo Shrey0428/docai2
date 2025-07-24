@@ -1,4 +1,4 @@
 streamlit
-pdf2image
-pytesseract
+easyocr
+PyMuPDF
 Pillow
