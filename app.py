@@ -1,72 +1,77 @@
 import streamlit as st
-from pdf2image import convert_from_bytes
+import fitz  # PyMuPDF
 from PIL import Image
-import pytesseract
-import tempfile
-import os
+import easyocr
+import io
 
-st.set_page_config(page_title="DocAI - Local OCR", page_icon="📄")
-st.title("📄 DocAI - Offline OCR & Analysis")
+st.set_page_config(page_title="DocAI Cloud OCR", page_icon="📄")
+st.title("📄 DocAI - Cloud-Based PDF OCR")
 
-# Set Tesseract path if needed (uncomment and modify below on Windows)
-# pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+# Initialize EasyOCR reader (English only for speed)
+reader = easyocr.Reader(['en'], gpu=False)
 
-# Upload PDF
-uploaded_file = st.file_uploader("Upload a scanned legal PDF", type=["pdf"])
+# File uploader
+uploaded_file = st.file_uploader("Upload a scanned legal PDF", type="pdf")
 
-# Extract text using pytesseract OCR
-def extract_text_from_pdf(pdf_bytes):
+# Convert PDF to images using PyMuPDF (fitz)
+def pdf_to_images(pdf_bytes):
+    images = []
     try:
-        images = convert_from_bytes(pdf_bytes)
-        all_text = ""
-
-        for idx, img in enumerate(images):
-            st.image(img, caption=f"📄 Page {idx + 1}", use_column_width=True)
-
-            # Convert to grayscale for better OCR
-            gray = img.convert("L")
-            text = pytesseract.image_to_string(gray)
-
-            if not text.strip():
-                st.warning(f"⚠️ No text detected on Page {idx + 1}. Try a clearer scan.")
-            else:
-                all_text += text + "\n"
-
-        if not all_text.strip():
-            st.error("❌ No text detected on any page. Try a better scanned PDF.")
-            return None
-
-        return all_text
-
+        with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+            for page_index in range(len(doc)):
+                page = doc.load_page(page_index)
+                pix = page.get_pixmap(dpi=200)
+                img = Image.open(io.BytesIO(pix.tobytes("png")))
+                images.append(img)
     except Exception as e:
-        st.error(f"❌ OCR failed: {e}")
-        return None
+        st.error(f"❌ PDF to image conversion failed: {e}")
+    return images
 
-# Dummy structured extractor using LLaMA (placeholder)
-def structured_extraction_llama(raw_text):
+# Extract text from each image
+def extract_text_from_images(images):
+    all_text = ""
+    for i, img in enumerate(images):
+        st.image(img, caption=f"📄 Page {i+1}", use_column_width=True)
+        with st.spinner(f"🔍 OCR on Page {i+1}..."):
+            result = reader.readtext(np.array(img), detail=0)
+            page_text = "\n".join(result)
+            if not page_text.strip():
+                st.warning(f"⚠️ No text detected on page {i+1}.")
+            all_text += page_text + "\n"
+    return all_text.strip()
+
+# Dummy extractor (can replace with LLaMA or other AI later)
+def structured_extraction(text):
+    if not text:
+        return {}
     return {
         "Party Name": "John Doe",
         "Document Type": "Lease Deed",
         "Date": "15-Feb-2023",
         "Location": "Hyderabad",
         "Amount": "₹18,00,000"
-    } if raw_text else {}
+    }
 
 if uploaded_file:
-    with st.spinner("🔍 Extracting text using Tesseract OCR..."):
-        raw_text = extract_text_from_pdf(uploaded_file.read())
+    pdf_bytes = uploaded_file.read()
+    with st.spinner("📸 Converting PDF pages to images..."):
+        images = pdf_to_images(pdf_bytes)
 
-    if raw_text:
-        st.success("✅ Text successfully extracted!")
-        st.subheader("📜 Raw OCR Text")
-        st.text_area("Extracted Text", raw_text, height=300)
+    if images:
+        st.success("✅ PDF converted to images.")
+        with st.spinner("🧠 Performing OCR..."):
+            text = extract_text_from_images(images)
 
-        with st.spinner("🤖 Analyzing with LLaMA model..."):
-            data = structured_extraction_llama(raw_text)
+        if text:
+            st.subheader("📜 Extracted OCR Text")
+            st.text_area("OCR Output", text, height=300)
 
-        st.subheader("📋 Structured Legal Info")
-        st.json(data)
+            st.subheader("📋 Structured Data (Demo)")
+            data = structured_extraction(text)
+            st.json(data)
+        else:
+            st.error("❌ OCR failed or no text found.")
     else:
-        st.error("❌ No text found. Please upload a clearer scanned PDF.")
+        st.error("❌ Could not process PDF.")
 else:
-    st.info("📤 Please upload a scanned legal PDF to begin.")
+    st.info("📤 Upload a scanned PDF to start OCR.")
