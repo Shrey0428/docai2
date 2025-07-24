@@ -5,50 +5,56 @@ import easyocr
 import numpy as np
 import io
 
-st.set_page_config(page_title="DocAI", page_icon="📄")
-st.title("📄 DocAI - OCR PDF Extractor")
+# Page config
+st.set_page_config(page_title="DocAI - PDF OCR", layout="wide")
+st.title("📄 DocAI - PDF Scanner & OCR")
 
+# Initialize OCR reader
 reader = easyocr.Reader(['en'], gpu=False)
 
-uploaded_file = st.file_uploader("📤 Upload scanned PDF", type="pdf")
+# Upload PDF
+uploaded_file = st.file_uploader("📤 Upload a scanned PDF file", type=["pdf"])
 
 def convert_pdf_to_images(pdf_bytes):
     images = []
     try:
-        with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
-            for i in range(len(doc)):
-                page = doc.load_page(i)
-                pix = page.get_pixmap(dpi=200)
-                img = Image.open(io.BytesIO(pix.tobytes("png")))
-                images.append(img)
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        for page_num in range(len(doc)):
+            page = doc.load_page(page_num)
+            pix = page.get_pixmap(dpi=200)
+            img = Image.open(io.BytesIO(pix.tobytes("png")))
+            images.append(img)
     except Exception as e:
-        st.error(f"❌ PDF to image failed: {e}")
+        st.error(f"❌ PDF conversion failed: {e}")
     return images
 
 def extract_text_with_easyocr(images):
-    full_text = ""
-    for i, img in enumerate(images):
-        st.image(img, caption=f"📄 Page {i+1}", use_column_width=True)
-        with st.spinner(f"🔍 Extracting text from Page {i+1}..."):
+    extracted_text = ""
+    for idx, img in enumerate(images):
+        st.image(img, caption=f"📃 Page {idx + 1}", use_column_width=True)
+        with st.spinner(f"🔍 Reading Page {idx + 1}..."):
             result = reader.readtext(np.array(img), detail=0)
-        text = "\n".join(result)
-        if not text.strip():
-            st.warning(f"⚠️ No text found on page {i+1}")
-        full_text += f"--- Page {i+1} ---\n{text.strip()}\n\n"
-    return full_text
+        page_text = "\n".join(result).strip()
+        if not page_text:
+            st.warning(f"⚠️ No text found on Page {idx + 1}")
+        extracted_text += f"--- Page {idx + 1} ---\n{page_text}\n\n"
+    return extracted_text
 
 if uploaded_file:
-    pdf_bytes = uploaded_file.read()
-    with st.spinner("📸 Converting PDF to images..."):
-        images = convert_pdf_to_images(pdf_bytes)
+    file_bytes = uploaded_file.read()
+
+    st.subheader("📸 Step 1: Convert PDF to Images")
+    with st.spinner("Processing PDF..."):
+        images = convert_pdf_to_images(file_bytes)
 
     if images:
-        with st.spinner("🧠 Running EasyOCR..."):
-            ocr_text = extract_text_with_easyocr(images)
+        st.success(f"✅ Converted {len(images)} pages.")
+        st.subheader("🧠 Step 2: Extracting Text with OCR")
+        ocr_text = extract_text_with_easyocr(images)
 
-        st.subheader("📋 Extracted OCR Text")
-        st.text_area("All Text", ocr_text, height=400)
+        st.subheader("📋 Step 3: Extracted Text")
+        st.text_area("OCR Output", ocr_text, height=400)
     else:
-        st.error("❌ No images found in PDF.")
+        st.error("❌ No images found in the uploaded PDF.")
 else:
-    st.info("📥 Upload a scanned PDF to begin.")
+    st.info("📥 Please upload a scanned PDF to begin.")
